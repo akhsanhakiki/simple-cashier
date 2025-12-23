@@ -58,6 +58,7 @@ class Transaction(TransactionBase, table=True):
 
 class TransactionCreate(SQLModel):
     items: List[TransactionItemCreate]
+    created_at: Optional[datetime] = None
 
 class TransactionRead(TransactionBase):
     id: int
