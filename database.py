@@ -11,21 +11,24 @@ if not DATABASE_URL:
     print("Warning: DATABASE_URL not found in environment variables.")
 
 # Connection pooling optimized for free tier (Render + Neon)
-# - pool_size: Keep 2 connections ready (Neon free tier has connection limits)
-# - max_overflow: Allow up to 3 extra connections when needed
+# - pool_size: Keep 3 connections ready (optimized for better performance)
+# - max_overflow: Allow up to 5 extra connections when needed
 # - pool_pre_ping: Verify connections before using (important for free tiers that may close idle connections)
-# - pool_recycle: Recycle connections after 3 minutes (free tiers may close idle connections)
+# - pool_recycle: Recycle connections after 2 minutes (free tiers may close idle connections faster)
+# - pool_timeout: Timeout for getting connection from pool
 engine = create_engine(
     DATABASE_URL,
     poolclass=QueuePool,
-    pool_size=2,
-    max_overflow=3,
+    pool_size=3,  # Increased from 2 for better performance
+    max_overflow=5,  # Increased from 3 for better concurrency
     pool_pre_ping=True,
-    pool_recycle=180,  # 3 minutes
+    pool_recycle=120,  # Reduced from 180 (2 minutes) for faster connection refresh
+    pool_timeout=10,  # Added timeout for getting connection from pool
     echo=False,  # Disable SQL logging in production
     connect_args={
-        "connect_timeout": 5,
-        "sslmode": "require"
+        "connect_timeout": 3,  # Reduced from 5 for faster failure detection
+        "sslmode": "require",
+        "application_name": "simple_cashier"  # Helpful for database monitoring
     }
 ) if DATABASE_URL else None
 
