@@ -74,18 +74,21 @@ def create_transaction(transaction_in: TransactionCreate, session: Session = Dep
     session.add(db_transaction)
     session.flush()  # Get ID without committing
     
-    # Associate items with transaction
+    # Associate items with transaction and use bulk insert
     for item in transaction_items:
         item.transaction_id = db_transaction.id
-        session.add(item)
+    
+    # Use add_all() for bulk insert optimization
+    session.add_all(transaction_items)
     
     # Single commit instead of two separate commits
     session.commit()
-    session.refresh(db_transaction)
+    # Removed unnecessary refresh() - transaction and items are already in session
     
-    # Build response using cached product data (no additional queries)
+    # Build response using transaction_items we already have (no additional queries or lazy loading)
+    # After commit(), items have their IDs assigned
     return_items = []
-    for item in db_transaction.items:
+    for item in transaction_items:
         product = product_dict[item.product_id]
         return_items.append(TransactionItemRead(
             id=item.id,

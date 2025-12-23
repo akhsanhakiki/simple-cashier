@@ -18,7 +18,7 @@ def create_product(product: ProductCreate, session: Session = Depends(get_sessio
     db_product = Product.model_validate(product)
     session.add(db_product)
     session.commit()
-    session.refresh(db_product)
+    # Removed unnecessary refresh() - object is already in session with all data
     return db_product
 
 @router.get("/", response_model=List[ProductRead])
@@ -48,7 +48,7 @@ def update_product(product_id: int, product: ProductUpdate, session: Session = D
     
     session.add(db_product)
     session.commit()
-    session.refresh(db_product)
+    # Removed unnecessary refresh() - object is already in session with all data
     return db_product
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
