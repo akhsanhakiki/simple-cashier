@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from sqlalchemy.orm import selectinload
 from typing import List
+from datetime import datetime
 
 from database import get_session
 from models import (
@@ -70,7 +71,9 @@ def create_transaction(transaction_in: TransactionCreate, session: Session = Dep
         transaction_items.append(db_item)
     
     # Create Transaction and items in a single commit (optimization)
-    db_transaction = Transaction(total_amount=total_amount)
+    # Use custom datetime if provided, otherwise use current datetime
+    transaction_datetime = transaction_in.created_at if transaction_in.created_at else datetime.utcnow()
+    db_transaction = Transaction(total_amount=total_amount, created_at=transaction_datetime)
     session.add(db_transaction)
     session.flush()  # Get ID without committing
     
